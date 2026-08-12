@@ -1,0 +1,13 @@
+{
+  "name": "lspd-logger",
+  "version": "1.0.0",
+  "description": "LSPD Vanguard Discord Logger",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.2.1"
+  }
+}
