@@ -29,7 +29,6 @@ const client = new Client({
     ]
 });
 
-
 /* =====================================================
                      LOG FUNCTION
 ===================================================== */
@@ -46,24 +45,16 @@ function sendLog(guild, channelId, embed) {
     const channel = guild.channels.cache.get(channelId);
 
     if (!channel) {
-        console.log(
-            `[LOG] Channel not found: ${channelId}`
-        );
+        console.log(`[LOG] Channel not found: ${channelId}`);
         return;
     }
 
     channel.send({
         embeds: [embed]
     }).catch(error => {
-
-        console.log(
-            "[LOG ERROR]",
-            error.message
-        );
-
+        console.log("[LOG ERROR]", error.message);
     });
 }
-
 
 /* =====================================================
                     EMBED FUNCTION
@@ -80,7 +71,6 @@ function createEmbed(title, description) {
         });
 }
 
-
 /* =====================================================
                    AUDIT LOG FUNCTION
 ===================================================== */
@@ -93,32 +83,26 @@ async function getAuditExecutor(
 
     try {
 
-        const auditLogs =
-            await guild.fetchAuditLogs({
-                type: auditType,
-                limit: 10
-            });
+        const auditLogs = await guild.fetchAuditLogs({
+            type: auditType,
+            limit: 10
+        });
 
-        const entry =
-            auditLogs.entries.find(entry => {
+        const entry = auditLogs.entries.find(entry => {
 
-                if (!entry.target) {
-                    return false;
-                }
+            if (!entry.target) {
+                return false;
+            }
 
-                return (
-                    entry.target.id === targetId &&
-                    Date.now() - entry.createdTimestamp < 10000
-                );
-            });
+            return (
+                entry.target.id === targetId &&
+                Date.now() - entry.createdTimestamp < 10000
+            );
+        });
 
-        if (!entry) {
-            return null;
-        }
+        if (!entry) return null;
 
-        if (!entry.executor) {
-            return null;
-        }
+        if (!entry.executor) return null;
 
         return entry.executor;
 
@@ -133,7 +117,6 @@ async function getAuditExecutor(
     }
 }
 
-
 /* =====================================================
                          READY
 ===================================================== */
@@ -145,17 +128,9 @@ client.once("ready", () => {
     console.log("        LSPD VANGUARD LOGGER");
     console.log("======================================");
 
-    console.log(
-        `Bot: ${client.user.tag}`
-    );
-
-    console.log(
-        `Servers: ${client.guilds.cache.size}`
-    );
-
-    console.log(
-        "Status: ONLINE"
-    );
+    console.log(`Bot: ${client.user.tag}`);
+    console.log(`Servers: ${client.guilds.cache.size}`);
+    console.log("Status: ONLINE");
 
     console.log("======================================");
     console.log("");
@@ -173,7 +148,6 @@ client.once("ready", () => {
     });
 });
 
-
 /* =====================================================
                     MEMBER JOIN
 ===================================================== */
@@ -188,14 +162,11 @@ client.on(
             `**Member:** ${member.user}\n` +
             `**Username:** \`${member.user.tag}\`\n` +
             `**ID:** \`${member.id}\`\n\n` +
-
             `**Account Created:** ` +
             `<t:${Math.floor(
                 member.user.createdTimestamp / 1000
             )}:F>\n\n` +
-
-            `**Server Members:** ` +
-            `${member.guild.memberCount}`
+            `**Server Members:** ${member.guild.memberCount}`
         );
 
         embed.setThumbnail(
@@ -212,37 +183,30 @@ client.on(
     }
 );
 
-
 /* =====================================================
-                    MEMBER LEAVE / KICK
+                 MEMBER LEAVE / KICK
 ===================================================== */
 
 client.on(
     "guildMemberRemove",
     async member => {
 
-        const executor =
-            await getAuditExecutor(
-                member.guild,
-                AuditLogEvent.MemberKick,
-                member.id
-            );
-
-        /*
-         * اگر Executor پیدا شود،
-         * یعنی احتمال زیاد Kick شده است.
-         */
+        const executor = await getAuditExecutor(
+            member.guild,
+            AuditLogEvent.MemberKick,
+            member.id
+        );
 
         if (executor) {
 
             const embed = createEmbed(
                 "👢 MEMBER KICKED",
 
-                `**Member:** ${member.user?.tag || "Unknown"}\n` +
+                `**Member:** ${
+                    member.user?.tag || "Unknown"
+                }\n` +
                 `**ID:** \`${member.id}\`\n\n` +
-
-                `**Kicked By:** ` +
-                `${executor}\n` +
+                `**Kicked By:** ${executor}\n` +
                 `\`${executor.id}\``
             );
 
@@ -255,16 +219,12 @@ client.on(
             return;
         }
 
-
-        /*
-         * اگر Audit Log چیزی پیدا نکرد،
-         * Leave عادی در نظر گرفته می‌شود.
-         */
-
         const embed = createEmbed(
             "🔴 MEMBER LEFT",
 
-            `**Member:** ${member.user?.tag || "Unknown"}\n` +
+            `**Member:** ${
+                member.user?.tag || "Unknown"
+            }\n` +
             `**ID:** \`${member.id}\``
         );
 
@@ -276,7 +236,6 @@ client.on(
     }
 );
 
-
 /* =====================================================
                          BAN
 ===================================================== */
@@ -285,12 +244,11 @@ client.on(
     "guildBanAdd",
     async ban => {
 
-        const executor =
-            await getAuditExecutor(
-                ban.guild,
-                AuditLogEvent.MemberBanAdd,
-                ban.user.id
-            );
+        const executor = await getAuditExecutor(
+            ban.guild,
+            AuditLogEvent.MemberBanAdd,
+            ban.user.id
+        );
 
         const embed = createEmbed(
             "🔨 MEMBER BANNED",
@@ -303,6 +261,7 @@ client.on(
 
             embed.addFields({
                 name: "Banned By",
+
                 value:
                     `${executor}\n` +
                     `\`${executor.id}\``
@@ -323,7 +282,6 @@ client.on(
     }
 );
 
-
 /* =====================================================
                         UNBAN
 ===================================================== */
@@ -332,12 +290,11 @@ client.on(
     "guildBanRemove",
     async ban => {
 
-        const executor =
-            await getAuditExecutor(
-                ban.guild,
-                AuditLogEvent.MemberBanRemove,
-                ban.user.id
-            );
+        const executor = await getAuditExecutor(
+            ban.guild,
+            AuditLogEvent.MemberBanRemove,
+            ban.user.id
+        );
 
         const embed = createEmbed(
             "🔓 MEMBER UNBANNED",
@@ -350,6 +307,7 @@ client.on(
 
             embed.addFields({
                 name: "Unbanned By",
+
                 value:
                     `${executor}\n` +
                     `\`${executor.id}\``
@@ -364,18 +322,15 @@ client.on(
     }
 );
 
-
 /* =====================================================
-                       TIMEOUT
+                       MEMBER UPDATE
 ===================================================== */
 
 client.on(
     "guildMemberUpdate",
     async (oldMember, newMember) => {
 
-        /*
-         * فقط وقتی Timeout تغییر کرده باشد
-         */
+        /* ================= TIMEOUT ================= */
 
         if (
             oldMember.communicationDisabledUntilTimestamp !==
@@ -387,12 +342,11 @@ client.on(
                 newMember.communicationDisabledUntilTimestamp >
                 Date.now();
 
-            const executor =
-                await getAuditExecutor(
-                    newMember.guild,
-                    AuditLogEvent.MemberUpdate,
-                    newMember.id
-                );
+            const executor = await getAuditExecutor(
+                newMember.guild,
+                AuditLogEvent.MemberUpdate,
+                newMember.id
+            );
 
             const embed = createEmbed(
 
@@ -421,6 +375,7 @@ client.on(
 
                 embed.addFields({
                     name: "Executor",
+
                     value:
                         `${executor}\n` +
                         `\`${executor.id}\``
@@ -434,28 +389,18 @@ client.on(
             );
         }
 
+        /* ================= ROLE UPDATE ================= */
 
-        /* =================================================
-                         ROLE UPDATE
-        ================================================= */
+        const oldRoles = oldMember.roles.cache;
+        const newRoles = newMember.roles.cache;
 
-        const oldRoles =
-            oldMember.roles.cache;
+        const addedRoles = newRoles.filter(
+            role => !oldRoles.has(role.id)
+        );
 
-        const newRoles =
-            newMember.roles.cache;
-
-        const addedRoles =
-            newRoles.filter(
-                role =>
-                    !oldRoles.has(role.id)
-            );
-
-        const removedRoles =
-            oldRoles.filter(
-                role =>
-                    !newRoles.has(role.id)
-            );
+        const removedRoles = oldRoles.filter(
+            role => !newRoles.has(role.id)
+        );
 
         if (
             addedRoles.size > 0 ||
@@ -476,11 +421,9 @@ client.on(
 
                     value:
                         addedRoles
-                            .map(
-                                role =>
-                                    role.toString()
-                            )
+                            .map(role => role.toString())
                             .join(", ")
+                            .slice(0, 1024)
                 });
             }
 
@@ -491,11 +434,9 @@ client.on(
 
                     value:
                         removedRoles
-                            .map(
-                                role =>
-                                    role.toString()
-                            )
+                            .map(role => role.toString())
                             .join(", ")
+                            .slice(0, 1024)
                 });
             }
 
@@ -506,22 +447,18 @@ client.on(
             );
         }
 
-
-        /* =================================================
-                       NICKNAME UPDATE
-        ================================================= */
+        /* ================= NICKNAME ================= */
 
         if (
             oldMember.nickname !==
             newMember.nickname
         ) {
 
-            const executor =
-                await getAuditExecutor(
-                    newMember.guild,
-                    AuditLogEvent.MemberUpdate,
-                    newMember.id
-                );
+            const executor = await getAuditExecutor(
+                newMember.guild,
+                AuditLogEvent.MemberUpdate,
+                newMember.id
+            );
 
             const embed = createEmbed(
                 "✏️ NICKNAME CHANGED",
@@ -557,6 +494,7 @@ client.on(
 
                 embed.addFields({
                     name: "Changed By",
+
                     value:
                         `${executor}\n` +
                         `\`${executor.id}\``
@@ -571,7 +509,6 @@ client.on(
         }
     }
 );
-
 
 /* =====================================================
                     MESSAGE DELETE
@@ -592,8 +529,12 @@ client.on(
         const embed = createEmbed(
             "🗑️ MESSAGE DELETED",
 
-            `**Author:** ${message.author || "Unknown"}\n` +
-            `**User ID:** \`${message.author?.id || "Unknown"}\`\n` +
+            `**Author:** ${
+                message.author || "Unknown"
+            }\n` +
+            `**User ID:** \`${
+                message.author?.id || "Unknown"
+            }\`\n` +
             `**Channel:** ${message.channel}`
         );
 
@@ -609,6 +550,7 @@ client.on(
 
             embed.addFields({
                 name: "Attachments",
+
                 value:
                     `${message.attachments.size}`
             });
@@ -621,7 +563,6 @@ client.on(
         );
     }
 );
-
 
 /* =====================================================
                     MESSAGE EDIT
@@ -653,7 +594,9 @@ client.on(
         const embed = createEmbed(
             "✏️ MESSAGE EDITED",
 
-            `**Author:** ${oldMessage.author || "Unknown"}\n` +
+            `**Author:** ${
+                oldMessage.author || "Unknown"
+            }\n` +
             `**Channel:** ${oldMessage.channel}`
         );
 
@@ -670,9 +613,9 @@ client.on(
             }
         );
 
-        embed.setURL(
-            newMessage.url
-        );
+        if (newMessage.url) {
+            embed.setURL(newMessage.url);
+        }
 
         sendLog(
             oldMessage.guild,
@@ -681,7 +624,6 @@ client.on(
         );
     }
 );
-
 
 /* =====================================================
                      VOICE LOGS
@@ -700,9 +642,6 @@ client.on(
         let title;
         let description;
 
-
-        /* JOIN */
-
         if (
             !oldState.channelId &&
             newState.channelId
@@ -716,9 +655,6 @@ client.on(
                 `**Channel:** ${newState.channel}`;
         }
 
-
-        /* LEAVE */
-
         else if (
             oldState.channelId &&
             !newState.channelId
@@ -731,9 +667,6 @@ client.on(
                 `**Member:** ${member.user}\n` +
                 `**Channel:** ${oldState.channel}`;
         }
-
-
-        /* MOVE */
 
         else if (
             oldState.channelId &&
@@ -752,7 +685,6 @@ client.on(
         }
 
         else {
-
             return;
         }
 
@@ -769,7 +701,6 @@ client.on(
         );
     }
 );
-
 
 /* =====================================================
                     CHANNEL CREATE
@@ -797,7 +728,6 @@ client.on(
     }
 );
 
-
 /* =====================================================
                     CHANNEL DELETE
 ===================================================== */
@@ -822,7 +752,6 @@ client.on(
         );
     }
 );
-
 
 /* =====================================================
                     CHANNEL UPDATE
@@ -852,7 +781,7 @@ client.on(
         ) {
 
             changes.push(
-                `**Category:** Changed`
+                "**Category:** Changed"
             );
         }
 
@@ -862,7 +791,7 @@ client.on(
         ) {
 
             changes.push(
-                `**Permissions:** Changed`
+                "**Permissions:** Changed"
             );
         }
 
@@ -884,7 +813,6 @@ client.on(
         );
     }
 );
-
 
 /* =====================================================
                       ROLE CREATE
@@ -910,10 +838,53 @@ client.on(
     }
 );
 
-
 /* =====================================================
                       ROLE DELETE
 ===================================================== */
 
 client.on(
-    "roleDe
+    "roleDelete",
+    role => {
+
+        const embed = createEmbed(
+            "🗑️ ROLE DELETED",
+
+            `**Name:** \`${role.name}\`\n` +
+            `**ID:** \`${role.id}\``
+        );
+
+        sendLog(
+            role.guild,
+            config.logs.role,
+            embed
+        );
+    }
+);
+
+/* =====================================================
+                      ROLE UPDATE
+===================================================== */
+
+client.on(
+    "roleUpdate",
+    (oldRole, newRole) => {
+
+        const changes = [];
+
+        if (oldRole.name !== newRole.name) {
+
+            changes.push(
+                `**Name:** \`${oldRole.name}\` → \`${newRole.name}\``
+            );
+        }
+
+        if (oldRole.color !== newRole.color) {
+
+            changes.push(
+                "**Color:** Changed"
+            );
+        }
+
+        if (oldRole.permissions.bitfield !== newRole.permissions.bitfield) {
+
+            changes.
